@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo VIP - Videollamadas Exclusivas</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #0b0b0b; color: #fff; font-family: sans-serif; padding: 20px; }
+        h1 { text-align: center; color: #e50914; margin-bottom: 25px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
+        .card-modelo { background: #181818; border: 1px solid #333; border-radius: 10px; overflow: hidden; padding-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
+
+        .galeria-fotos { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; width: 100%; height: 280px; background: #000; }
+        .galeria-fotos img { width: 100%; height: 280px; object-fit: cover; scroll-snap-align: center; flex-shrink: 0; }
+
+        .info-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 15px 5px; }
+        .card-modelo h3 { font-size: 20px; color: #fff; margin: 0; }
+        .btn-like { background: transparent; border: none; color: #ff4444; font-size: 16px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+
+        .caracteristicas { font-size: 13px; color: #aaa; padding: 0 15px; margin-bottom: 5px; min-height: 30px; }
+        .estado { font-size: 12px; color: #46d369; margin-bottom: 15px; font-weight: bold; padding-left: 15px; }
+
+        .seccion-comentarios { padding: 0 15px; margin-bottom: 15px; border-top: 1px solid #222; padding-top: 10px; }
+        .lista-comentarios { max-height: 80px; overflow-y: auto; font-size: 12px; color: #ccc; margin-bottom: 8px; }
+        .comentario-item { background: #111; padding: 4px 8px; border-radius: 4px; margin-bottom: 4px; border-left: 2px solid #e50914; }
+        .form-comentario { display: flex; gap: 5px; }
+        .form-comentario input { flex: 1; background: #111; border: 1px solid #333; padding: 6px; color: #fff; font-size: 12px; border-radius: 4px; }
+        .form-comentario button { background: #333; color: #fff; border: none; padding: 6px 10px; font-size: 12px; border-radius: 4px; cursor: pointer; }
+
+        .btn-video {
+            background: #e50914; color: white; border: none; padding: 12px;
+            border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px;
+            width: calc(100% - 30px); margin: 0 15px; display: block; text-align: center;
+        }
+        .btn-video:hover { background: #b80710; }
+
+        #modalPago { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+        .modal-content { background: #181818; border: 1px solid #333; padding: 25px; border-radius: 12px; max-width: 450px; width: 100%; text-align: center; }
+        .modal-content h2 { color: #e50914; margin-bottom: 15px; font-size: 20px; }
+        .precio-box { font-size: 24px; color: #46d369; font-weight: bold; margin-bottom: 15px; }
+        .crypto-address { background: #111; padding: 12px; border: 1px dashed #555; border-radius: 6px; font-family: monospace; font-size: 12px; word-break: break-all; color: #fff; margin-bottom: 15px; }
+        .btn-copiar { background: #333; color: #fff; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-bottom: 15px; font-size: 13px; }
+        .btn-verificar { background: #46d369; color: #000; border: none; padding: 12px; width: 100%; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .btn-cerrar { background: transparent; border: none; color: #888; margin-top: 15px; cursor: pointer; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+    <h1>🌟 Catálogo Exclusivo VIP 🌟</h1>
+
+    <div class="grid">
+        {% for m in modelos %}
+        <div class="card-modelo">
+            <div class="galeria-fotos">
+                {% for foto in m.fotos %}
+                    <img src="{{ foto }}" alt="{{ m.nombre }}">
+                {% endfor %}
+            </div>
+
+            <div class="info-header">
+                <h3>{{ m.nombre }}</h3>
+                <button class="btn-like" onclick="darLike({{ m.id }}, this)">
+                    ❤️ <span id="likes-{{ m.id }}">{{ m.likes }}</span>
+                </button>
+            </div>
+
+            <div class="caracteristicas">{{ m.caracteristicas }}</div>
+            <div class="estado">{{ m.estado }} • 👁️ {{ m.vistas }} Vistas</div>
+
+            <div class="seccion-comentarios">
+                <div class="lista-comentarios" id="lista-comentarios-{{ m.id }}">
+                    {% for c in m.comentarios %}
+                        <div class="comentario-item">{{ c }}</div>
+                    {% endfor %}
+                </div>
+                <div class="form-comentario">
+                    <input type="text" id="input-comentario-{{ m.id }}" placeholder="Escribe un comentario...">
+                    <button onclick="enviarComentario({{ m.id }})">Enviar</button>
+                </div>
+            </div>
+
+            <button class="btn-video" onclick="abrirPasarelaPago()">
+                🔒 Iniciar Videollamada VIP ($32.63 USD)
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div id="modalPago">
+        <div class="modal-content">
+            <h2>PAGO DE PAQUETE VIP</h2>
+            <p style="font-size: 13px; color: #aaa; margin-bottom: 10px;">Para desbloquear la videollamada y la verificación completa, realiza el envío exacto a:</p>
+            <div class="precio-box">$32.63 USD (Equivalente en BTC/USDT)</div>
+            <div class="crypto-address" id="dirCrypto">bc1qx6xefr13ndcjlngzauu9k536ge4hqd46aydkh0</div>
+            <button class="btn-copiar" onclick="copiarDireccion()">📋 Copiar Dirección</button>
+            <button class="btn-verificar" onclick="alert('Buscando transacción en la red blockchain... Por favor espere confirmación.')">VERIFICAR PAGO</button>
+            <br>
+            <button class="btn-cerrar" onclick="cerrarPasarelaPago()">Cancelar / Volver</button>
+        </div>
+    </div>
+
+    <script>
+        async function darLike(modeloId, btn) {
+            try {
+                const response = await fetch(`/api/like/${modeloId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById(`likes-${modeloId}`).innerText = data.likes;
+                }
+            } catch (err) {}
+        }
+
+        async function enviarComentario(modeloId) {
+            const input = document.getElementById(`input-comentario-${modeloId}`);
+            const texto = input.value.trim();
+            if (!texto) return;
+
+            try {
+                const response = await fetch(`/api/comentario/${modeloId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ comentario: texto })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    const lista = document.getElementById(`lista-comentarios-${modeloId}`);
+                    lista.innerHTML = '';
+                    data.comentarios.forEach(c => {
+                        lista.innerHTML += `<div class="comentario-item">${c}</div>`;
+                    });
+                    input.value = '';
+                    lista.scrollTop = lista.scrollHeight;
+                }
+            } catch (err) {}
+        }
+
+        function abrirPasarelaPago() {
+            document.getElementById('modalPago').style.display = 'flex';
+        }
+
+        function cerrarPasarelaPago() {
+            document.getElementById('modalPago').style.display = 'none';
+        }
+
+        function copiarDireccion() {
+            const direccion = document.getElementById('dirCrypto').innerText;
+            navigator.clipboard.writeText(direccion);
+            alert('¡Dirección de criptomonedas copiada al portapapeles!');
+        }
+    </script>
+</body>
+</html>
